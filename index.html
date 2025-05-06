@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Tutorial CAI</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: #f0f4f8;
+    }
+    .container {
+      max-width: 500px;
+      margin: 50px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .hide { display: none; }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .wrong { background-color: #f44336; }
+    .correct { background-color: #4CAF50; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="start-screen">
+      <h2>Masukkan Namamu</h2>
+      <input type="text" id="username" placeholder="Namamu" />
+      <br>
+      <button onclick="startGame()">Mulai Game</button>
+    </div>
+
+    <div id="question-screen" class="hide">
+      <h2 id="question-title"></h2>
+      <div id="choices"></div>
+      <p>Skor: <span id="score">0</span> | ❤️ <span id="lives">3</span></p>
+    </div>
+
+    <div id="end-screen" class="hide">
+      <h2>Game Selesai!</h2>
+      <p id="final-score"></p>
+      <h3>Leaderboard:</h3>
+      <ul id="leaderboard"></ul>
+      <button onclick="location.reload()">Main Lagi</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "Berapa hasil konversi desimal 10 ke biner?",
+        choices: ["1010", "1100", "1110", "1001"],
+        answer: "1010"
+      },
+      {
+        question: "Berapa hasil konversi desimal 5 ke biner?",
+        choices: ["101", "111", "100", "110"],
+        answer: "101"
+      },
+      {
+        question: "Berapa hasil konversi desimal 2 ke biner?",
+        choices: ["10", "11", "01", "00"],
+        answer: "10"
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let lives = 3;
+    let username = "";
+
+    function startGame() {
+      username = document.getElementById('username').value;
+      if (!username) return alert("Masukkan nama dulu!");
+      document.getElementById('start-screen').classList.add('hide');
+      document.getElementById('question-screen').classList.remove('hide');
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentQuestion];
+      document.getElementById('question-title').textContent = q.question;
+      const choicesDiv = document.getElementById('choices');
+      choicesDiv.innerHTML = "";
+      q.choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.textContent = choice;
+        btn.onclick = () => checkAnswer(choice);
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(choice) {
+      const correct = questions[currentQuestion].answer;
+      if (choice === correct) {
+        score += 10;
+        document.getElementById('score').textContent = score;
+      } else {
+        lives--;
+        document.getElementById('lives').textContent = lives;
+      }
+      currentQuestion++;
+      if (currentQuestion < questions.length && lives > 0) {
+        showQuestion();
+      } else {
+        endGame();
+      }
+    }
+
+    function endGame() {
+      document.getElementById('question-screen').classList.add('hide');
+      document.getElementById('end-screen').classList.remove('hide');
+      document.getElementById('final-score').textContent = `${username}, skor akhir kamu adalah ${score}`;
+
+      let leaderboard = JSON.parse(localStorage.getItem('leaderboard') || '[]');
+      leaderboard.push({ name: username, score });
+      leaderboard.sort((a, b) => b.score - a.score);
+      localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+
+      const ul = document.getElementById('leaderboard');
+      ul.innerHTML = "";
+      leaderboard.slice(0, 5).forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.name}: ${entry.score}`;
+        ul.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
